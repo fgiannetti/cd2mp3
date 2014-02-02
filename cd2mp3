@@ -1,0 +1,55 @@
+#!/bin/bash
+
+wav_ext='wav'
+inf_ext='inf'
+cd_info_file='audio.cdindex'
+title_label='\<Title\>'
+artist_label='\<Artist\>'
+audiotitle="Tracktitle"
+
+function extractcdinfo {
+	local result=`cat $cd_info_file | grep $1`
+	result=${result#*$1}
+	result=${result%*$2}
+	result=`echo $result | sed -e s/\ /./g -e s/[\(\)\!\?]//g`
+	echo "$result"
+}
+
+function normalize {
+	result=`echo "$1" | sed -e s/\ /./g -e s/[\(\)\!\?]//g`
+	echo "$result"
+}
+
+if [ ! -f  ]; then
+	echo "No se encontro informacion del CD" && exit 1
+fi
+
+srcdir=`pwd`
+tmpdir="/tmp/"`date +%N`
+mkdir $tmpdir
+cd $tmpdir
+
+cdda2wav -L 0 -B -D /dev/cdrom	
+
+artist=$(extractcdinfo "\<Artist\>" "\</Artist\>")
+artistdir=$(normalize "$artist")
+album=$(extractcdinfo "\<Title\>" "\</Title\>")
+albumdir=$(normalize "$album")
+mkdir -p $srcdir/$artistdir/$albumdir
+
+for file in `ls *.$wav_ext`; do
+	filename="${file%.*}"
+	trackname=`grep $audiotitle $filename.$inf_ext`
+	
+	if [ -n "$trackname" ]; then
+		trackname=${trackname#Tracktitle*\'*}
+		trackname=${trackname%*\'*} 
+		outfilename=$(normalize "$trackname")
+		echo "Ripping $trackname..."
+		lame --quiet -b 192 --tt "$trackname" --ta "$artist" --tl "$album" $filename.$wav_ext $srcdir/$artistdir/$albumdir/$outfilename.mp3 
+	fi
+done
+
+rm -rf $tmpdir
+
+
