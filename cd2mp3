@@ -12,7 +12,6 @@ function extractcdinfo {
 	local result=`cat $cd_info_file | grep $1`
 	result=${result#*$1}
 	result=${result%*$2}
-	result=`echo $result | sed -e s/\ /./g -e s/[\(\)\!\?]//g`
 	echo "$result"
 }
 
@@ -32,6 +31,7 @@ cd $tmpdir
 
 cdda2wav -verbose-level toc -L 0 -B -D /dev/cdrom	
 
+cd /mnt/fer/mp3/rip/artista/album
 artist=$(extractcdinfo "\<Artist\>" "\</Artist\>")
 artistdir=$(normalize "$artist")
 album=$(extractcdinfo "\<Title\>" "\</Title\>")
