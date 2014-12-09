@@ -9,7 +9,7 @@ audiotitle='Tracktitle'
 tracknumberlabel='Tracknumber'
 
 function extractcdinfo {
-	local result=`cat $cd_info_file | grep $1`
+	local result=`cat $cd_info_file | grep $1 | head -n 1`
 	result=${result#*$1}
 	result=${result%*$2}
 	echo "$result"
@@ -31,7 +31,6 @@ cd $tmpdir
 
 cdda2wav -verbose-level toc -L 0 -B -D /dev/cdrom	
 
-cd /mnt/fer/mp3/rip/artista/album
 artist=$(extractcdinfo "\<Artist\>" "\</Artist\>")
 artistdir=$(normalize "$artist")
 album=$(extractcdinfo "\<Title\>" "\</Title\>")
@@ -49,7 +48,7 @@ for file in `ls *.$wav_ext`; do
 		tracknumber=${tracknumber#Tracknumber=}
 		outfilename=$(normalize "$trackname")
 		echo "Ripping $trackname..."
-		lame --quiet -b 192 --tt "$trackname" --ta "$artist" --tl "$album" --tn $tracknumber $filename.$wav_ext $srcdir/$artistdir/$albumdir/`printf %02d $tracknumber`-$outfilename.mp3 
+		lame --quiet -b 192 --tt "'$trackname'" --ta "'$artist'" --tl "'$album'" --tn $tracknumber $filename.$wav_ext $srcdir/$artistdir/$albumdir/`printf %02d $tracknumber`-$outfilename.mp3 
 	fi
 done
 
